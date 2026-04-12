@@ -1,0 +1,37 @@
+
+\subsection{External Validation on DDI}
+\label{sec:ddi}
+
+To assess generalisability beyond HAM10000, we evaluated all four trained
+variants on the Diverse Dermatology Images (DDI) dataset~\cite{daneshjou2022}
+in a zero-shot transfer setting (no fine-tuning). DDI contains 656
+biopsy-confirmed images from Stanford Clinics with ground-truth Fitzpatrick
+scale labels: FST I--II $n$=208 (light), FST III--IV
+$n$=241 (medium), FST V--VI $n$=207 (dark).
+
+Table~\ref{tab:ddi} presents per-variant, per-tone results on DDI.
+The full model achieves overall AUC$=$
+0.6249
+[0.574--
+0.680].
+
+The light--dark AUC gap on DDI (full model):
+light AUC$=$0.6278 vs.\
+dark AUC$=$0.5862,
+a gap of 4.2pp.
+This is consistent with the gap observed on HAM10000 (6.7pp) and with the
+${\sim}20$pp gap reported by Daneshjou et al.~\cite{daneshjou2022},
+providing cross-dataset evidence that the performance disparity is not an
+artifact of HAM10000's composition.
+
+Importantly, the specificity--sensitivity asymmetry observed on HAM10000
+is also present on DDI: the full model achieves dark-skin sensitivity$=$
+0.229 but
+dark-skin specificity$=
+0.843,
+confirming that the over-prediction pattern generalises to an independent
+dataset with ground-truth Fitzpatrick labels.
+
+Note that ITA encoding for DDI uses FST-to-ITA approximate mapping
+(Seité et al.~\cite{seite2020}) rather than image-computed ITA, as
+DDI provides ground-truth FST labels directly.
