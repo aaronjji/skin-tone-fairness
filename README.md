@@ -1,6 +1,6 @@
 # SkinToneNet — Skin Tone-Aware Melanoma Detection
 
-Code for the MLHC 2026 paper: *"Skin Tone Fairness in Dermoscopy AI: Closing the Dark-Skin AUC Gap with ITA-Conditioned EfficientNet"*
+Code for: *"Skin Tone Fairness in Dermoscopy AI: Closing the Dark-Skin AUC Gap with ITA-Conditioned EfficientNet"*
 
 ## Overview
 
@@ -120,15 +120,7 @@ Generates four PDF figures for the paper.
 
 ## Citation
 
-If you use this code, please cite:
-
-```bibtex
-@inproceedings{skintone2026,
-  title     = {Skin Tone Fairness in Dermoscopy AI: Closing the Dark-Skin AUC Gap with ITA-Conditioned EfficientNet},
-  booktitle = {Machine Learning for Healthcare (MLHC)},
-  year      = {2026},
-}
-```
+please contact my email if you need to cite
 
 ## License
 
