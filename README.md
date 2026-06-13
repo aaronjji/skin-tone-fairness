@@ -1,6 +1,6 @@
 # SkinToneNet — Skin Tone-Aware Melanoma Detection
 
-Code for: *"Skin Tone Fairness in Dermoscopy AI: Closing the Dark-Skin AUC Gap with ITA-Conditioned EfficientNet"*
+Code for: *"Contrast-Induced Class Overlap as a Fairness Bottleneck in Dermatological AI: Evidence from HAM10000"*
 
 ## Overview
 
