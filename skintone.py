@@ -85,8 +85,8 @@ ITA_LIGHT_THRESH = 41.0    # > 41 → light (Fitzpatrick I–II)
 ITA_MEDIUM_THRESH = 10.0   # 10–41 → medium (III–IV); < 10 → dark (V–VI)
 
 # Diagnosis label mapping
-MALIGNANT_DX = {"mel", "bcc", "akiec", "vasc"}
-BENIGN_DX    = {"nv", "bkl", "df"}
+MALIGNANT_DX = {"mel", "bcc", "akiec"}
+BENIGN_DX    = {"nv", "bkl", "df", "vasc"}
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD  = [0.229, 0.224, 0.225]
@@ -615,7 +615,8 @@ def train_variant(name: str, train_df, val_df, output_dir: Path, device):
     model  = SkinToneNet(use_tone=use_tone, pretrained=True).to(device)
     opt    = optim.AdamW(model.param_groups(), weight_decay=WEIGHT_DECAY)
     sched  = optim.lr_scheduler.CosineAnnealingWarmRestarts(opt, T_0=10, T_mult=2)
-    pw     = torch.tensor([POS_WEIGHT], device=device)
+    eff_pw = 1.0 if tone_balance else POS_WEIGHT
+    pw     = torch.tensor([eff_pw], device=device)
     bce    = nn.BCEWithLogitsLoss(pos_weight=pw)
 
     def smooth_criterion(logits, labels):
@@ -637,7 +638,7 @@ def train_variant(name: str, train_df, val_df, output_dir: Path, device):
         if ep % 5 == 0 or ep == 1:
             print(f"  ep {ep:3d}/{EPOCHS} | loss={loss:.4f} | val_AUC={val_auc:.4f} | best={best_auc:.4f}")
 
-    print(f"  Best val AUC: {best_auc:.4f}  → {ckpt_path}")
+    print(f"  Best val AUC: {best_auc:.4f}  -> {ckpt_path}")
     return ckpt_path, use_tone
 
 
@@ -721,7 +722,7 @@ def evaluate_all(variants: dict, test_df: pd.DataFrame, output_dir: Path,
     labels    = None
 
     for name, (ckpt, use_tone) in variants.items():
-        print(f"\n→ {name}")
+        print(f"\n-- {name}")
         model = SkinToneNet(use_tone=use_tone, pretrained=False).to(device)
         model.load_state_dict(torch.load(ckpt, map_location=device))
 
@@ -756,12 +757,12 @@ def evaluate_all(variants: dict, test_df: pd.DataFrame, output_dir: Path,
 
         # Print summary
         o = results[name]["overall"]
-        print(f"  Overall AUC={o['auc']:.4f} [{o['auc_ci_lo']:.4f}–{o['auc_ci_hi']:.4f}]")
+        print(f"  Overall AUC={o['auc']:.4f} [{o['auc_ci_lo']:.4f}-{o['auc_ci_hi']:.4f}]")
         for tone in ["light", "medium", "dark"]:
             if tone in results[name]:
                 t = results[name][tone]
-                print(f"  {tone:8s} AUC={t['auc']:.4f} [{t['auc_ci_lo']:.4f}–{t['auc_ci_hi']:.4f}] "
-                      f"Sens={t['sensitivity']:.3f} [{t['sens_ci_lo']:.3f}–{t['sens_ci_hi']:.3f}] "
+                print(f"  {tone:8s} AUC={t['auc']:.4f} [{t['auc_ci_lo']:.4f}-{t['auc_ci_hi']:.4f}] "
+                      f"Sens={t['sensitivity']:.3f} [{t['sens_ci_lo']:.3f}-{t['sens_ci_hi']:.3f}] "
                       f"Spec={t['specificity']:.3f} n={t['n']}")
 
     # Statistics
@@ -808,8 +809,8 @@ def save_table(results: dict, output_dir: Path):
           f"{'Sens':>6} {'CI':>16} {'Spec':>6} {'n':>5} {'n_pos':>5}")
     print("-" * 95)
     for _, row in df.iterrows():
-        auc_ci  = f"[{row.get('auc_ci_lo', 0):.3f}–{row.get('auc_ci_hi', 0):.3f}]"
-        sens_ci = f"[{row.get('sens_ci_lo', 0):.3f}–{row.get('sens_ci_hi', 0):.3f}]"
+        auc_ci  = f"[{row.get('auc_ci_lo', 0):.3f}-{row.get('auc_ci_hi', 0):.3f}]"
+        sens_ci = f"[{row.get('sens_ci_lo', 0):.3f}-{row.get('sens_ci_hi', 0):.3f}]"
         print(f"{row['variant']:<14} {row['tone_group']:<8} {row['auc']:>6.4f} {auc_ci:>16} "
               f"{row['sensitivity']:>6.3f} {sens_ci:>16} {row['specificity']:>6.3f} "
               f"{int(row['n']):>5} {int(row['n_pos']):>5}")
@@ -958,7 +959,7 @@ HAM10000 preprocessing pipeline are publicly released.
         ("conclusion_final.txt",      conclusion),
     ]:
         path = output_dir / fname
-        path.write_text(content)
+        path.write_text(content, encoding="utf-8")
         print(f"Wrote: {path}")
 
     return abstract, results_sec, conclusion
