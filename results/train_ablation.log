@@ -1,0 +1,45 @@
+GPU: NVIDIA T550 Laptop GPU
+
+[1/5] Loading metadata...
+Loading metadata: data\ham10000\HAM10000_metadata.csv
+Loaded 10015 images | Malignant: 1954 (19.5%) | Unique lesions: 7470
+
+[2/5] Patient-level split...
+  Train: n= 6959 | malignant=19.3% | lesions=5228
+  Val  : n= 1529 | malignant=20.4% | lesions=1121
+  Test : n= 1527 | malignant=19.6% | lesions=1121
+
+[3/5] ITA estimation / cache...
+Loading ITA cache: results\ita_cache.json
+Tone distribution:
+tone_group
+light     5844
+dark      3500
+medium     671
+
+[4/5] Training...
+
+============================================================
+Training: BASELINE
+  use_tone=False  dark_aug=False  mixup=False  tone_balance=False
+  ep   1/40 | loss=0.6409 | val_AUC=0.9010 | best=0.9010
+  ep   5/40 | loss=0.4552 | val_AUC=0.9319 | best=0.9319
+  ep  10/40 | loss=0.3651 | val_AUC=0.9301 | best=0.9319
+  ep  15/40 | loss=0.3103 | val_AUC=0.9234 | best=0.9319
+  ep  20/40 | loss=0.2553 | val_AUC=0.9172 | best=0.9319
+  ep  25/40 | loss=0.2303 | val_AUC=0.9203 | best=0.9319
+  ep  30/40 | loss=0.2265 | val_AUC=0.9202 | best=0.9319
+  ep  35/40 | loss=0.2423 | val_AUC=0.9198 | best=0.9319
+  ep  40/40 | loss=0.2210 | val_AUC=0.9013 | best=0.9319
+Traceback (most recent call last):
+  File "C:\Users\aaron\Downloads\skincancer - darktones\skintone.py", line 1142, in <module>
+    main()
+  File "C:\Users\aaron\Downloads\skincancer - darktones\skintone.py", line 1098, in main
+    ckpt, use_tone = train_variant(name, train_df, val_df, output_dir, device)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aaron\Downloads\skincancer - darktones\skintone.py", line 641, in train_variant
+    print(f"  Best val AUC: {best_auc:.4f}  \u2192 {ckpt_path}")
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 24: character maps to <undefined>
