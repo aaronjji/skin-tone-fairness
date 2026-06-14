@@ -51,7 +51,7 @@ for d in IMG_DIRS:
     for p in Path(d).iterdir():
         img_map[p.stem] = p
 
-MALIGNANT = {"mel", "bcc", "akiec", "vasc"}
+MALIGNANT = {"mel", "bcc", "akiec"}
 meta["malignant"] = meta["dx"].str.lower().str.strip().isin(MALIGNANT).astype(int)
 id_to_label = dict(zip(meta["image_id"], meta["malignant"]))
 
@@ -94,7 +94,7 @@ with torch.no_grad():
 
 df = pd.DataFrame(results)
 df.to_csv(OUT_CSV, index=False)
-print(f"\nSaved {len(df)} predictions → {OUT_CSV}")
+print(f"\nSaved {len(df)} predictions -> {OUT_CSV}")
 
 # quick AUC check
 from sklearn.metrics import roc_auc_score
