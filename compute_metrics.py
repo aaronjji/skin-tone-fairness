@@ -449,7 +449,8 @@ def main():
 
     # ── 3e. Referral burden ───────────────────────────────────────────────────
     sep(w=95)
-    lines.append("TABLE 3e — REFERRAL BURDEN  (full model, corrected labels)")
+    lines.append("TABLE 3e — REFERRAL BURDEN  (full model, HC-ITA subset, corrected labels)")
+    lines.append("          Light HC: ITA>55, Dark HC: ITA<0")
     lines.append(
         f"          unnecessary_per_1000 = (1 - spec) x p_benign x 1000"
         f"   [p_benign = {p_ben:.4f}]"
@@ -463,8 +464,8 @@ def main():
 
     if "full" in all_scores:
         sf = all_scores["full"]
-        for tone in ("light", "dark"):
-            mask = masks[tone]
+        for tone, mask_key in (("light", "hc_light"), ("dark", "hc_dark")):
+            mask = masks[mask_key]
             ts, tl = sf[mask], labels[mask]
             for t_val in (T_DEFAULT, T_CALIB):
                 m      = met(ts, tl, t=t_val)
@@ -477,10 +478,10 @@ def main():
                     f"{_f(burden,1):>18}  {n_ben:>10}"
                 )
 
-        spec_d5 = met(sf[masks["dark"]],  labels[masks["dark"]],  t=0.50).get("spec", float("nan"))
-        spec_l5 = met(sf[masks["light"]], labels[masks["light"]], t=0.50).get("spec", float("nan"))
-        spec_d3 = met(sf[masks["dark"]],  labels[masks["dark"]],  t=T_CALIB).get("spec", float("nan"))
-        spec_l3 = met(sf[masks["light"]], labels[masks["light"]], t=T_CALIB).get("spec", float("nan"))
+        spec_d5 = met(sf[masks["hc_dark"]],  labels[masks["hc_dark"]],  t=0.50).get("spec", float("nan"))
+        spec_l5 = met(sf[masks["hc_light"]], labels[masks["hc_light"]], t=0.50).get("spec", float("nan"))
+        spec_d3 = met(sf[masks["hc_dark"]],  labels[masks["hc_dark"]],  t=T_CALIB).get("spec", float("nan"))
+        spec_l3 = met(sf[masks["hc_light"]], labels[masks["hc_light"]], t=T_CALIB).get("spec", float("nan"))
 
         exc_50 = ((1-spec_d5)-(1-spec_l5)) * p_ben * 1000
         exc_35 = ((1-spec_d3)-(1-spec_l3)) * p_ben * 1000

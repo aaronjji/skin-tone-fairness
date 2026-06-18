@@ -1,0 +1,21 @@
+Dermatological AI systems exhibit well-documented performance disparities across skin tones, yet the
+underlying mechanism remains underspecified. We demonstrate that contrast-induced class overlap—the
+systematic reduction in lesion-background visual contrast with increasing skin melanin concentration—
+is a mechanistically distinct fairness bottleneck that persists even with balanced training data. We
+formalise this via signal-to-noise ratio (SNR) analysis grounded in ITA-based optical parameters
+(Seité et al. 2020), showing a 5.2× SNR reduction (4.09 light / 0.78 dark) from lighter
+(Fitzpatrick I–II) to darker skin (V–VI), consistent with the ~20pp AUC gap reported in
+Daneshjou et al. (2022).
+
+We present SkinToneNet v4: an EfficientNet-B2 backbone augmented with an ITA-based tone conditioning
+branch, trained and evaluated on HAM10000 (10,015 real dermoscopic images, patient-level split,
+seed=42). A four-variant ablation study—evaluated on a single shared patient-level test set
+(n_test=1527: light=853, medium=114, dark=560) with 2000-iteration
+bootstrap 95% CIs and 5000-iteration paired permutation tests—reveals that tone
+conditioning provides the most consistent dark-skin sensitivity improvement (+3.4pp vs baseline
+at t=0.5), while augmentation shifts the sensitivity-specificity operating point in a clinically
+recoverable direction. The full model achieves overall AUC = 0.9015
+[0.883–0.920].
+The permutation test yields p = 0.2704 (Cohen's h = -0.0886, n_required ≈ 1000
+for 80% power), quantifying the sample size needed for confirmatory validation. All code, trained
+weights, and the HAM10000 preprocessing pipeline are released publicly.
