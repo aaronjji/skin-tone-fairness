@@ -1,5 +1,19 @@
+
+Device: cuda
+Test set: n=1527, positives=300 (19.6%), seed=42 split
+Tone groups: light=853, medium=114, dark=560, unknown=0
+Cached scores loaded from results\all_scores.csv: ['baseline', 'aug_only', 'tone_only', 'full', 'baseline_balanced']
+  baseline: from cache
+  aug_only: from cache
+  tone_only: from cache
+  full: from cache
+  baseline_balanced: from cache
+
+Scores cached -> results\all_scores.csv
+
+
 ===================================================================================================================
-TABLE 3a â€” FULL ABLATION  (corrected: positive = {mel, bcc, akiec}; vasc -> benign)
+TABLE 3a — FULL ABLATION  (corrected: positive = {mel, bcc, akiec}; vasc -> benign)
           n=1527 locked test set, t=0.5, 8-crop TTA, 2000-iter bootstrap 95% CI
 ===================================================================================================================
 Variant          Tone        AUC          [95% CI]   Sens          [95% CI]   Spec     n    n+
@@ -27,7 +41,7 @@ Bal. Baseline    dark     0.8449     [0.802-0.881]  0.789     [0.718-0.852]  0.7
 ===================================================================================================================
 
 ===================================================================================================================
-TABLE 3b â€” HIGH-CONFIDENCE ITA SUBSET
+TABLE 3b — HIGH-CONFIDENCE ITA SUBSET
           Light HC: ITA>55, Dark HC: ITA<0  |  point estimates only
 ===================================================================================================================
 Variant          HC Tone           AUC   Sens   Spec     n    n+
@@ -55,7 +69,7 @@ Bal. Baseline    d dark-light   -0.0687 +0.041 -0.063
 ===================================================================================================================
 
 ===================================================================================================================
-TABLE 3c â€” PRE-SPECIFIED PERMUTATION TESTS  (5000 iter, seed=42)
+TABLE 3c — PRE-SPECIFIED PERMUTATION TESTS  (5000 iter, seed=42)
           Comparison: Full model vs Baseline on DARK subset (ITA<=10)
 ===================================================================================================================
 #  Test                            Obs. Gap   p-value  Cohen's h
@@ -66,7 +80,7 @@ TABLE 3c â€” PRE-SPECIFIED PERMUTATION TESTS  (5000 iter, seed=42)
 ===================================================================================================================
 
 =================================================================
-TABLE 3d â€” REFERRAL TRIAGE PREVALENCE (corrected labels)
+TABLE 3d — REFERRAL TRIAGE PREVALENCE (corrected labels)
 =================================================================
   overall   n=1527  positives=300  prevalence=19.6%  p_benign=0.8035
   light     n= 853  positives=150  prevalence=17.6%  p_benign=0.8242
@@ -77,7 +91,7 @@ TABLE 3d â€” REFERRAL TRIAGE PREVALENCE (corrected labels)
 =================================================================
 
 ===============================================================================================
-TABLE 3e â€” REFERRAL BURDEN  (full model, HC-ITA subset, corrected labels)
+TABLE 3e — REFERRAL BURDEN  (full model, HC-ITA subset, corrected labels)
           Light HC: ITA>55, Dark HC: ITA<0
           unnecessary_per_1000 = (1 - spec) x p_benign x 1000   [p_benign = 0.8035]
 ===============================================================================================
@@ -95,10 +109,12 @@ dark      0.35   0.613   0.387               310.9         411
 ===============================================================================================
 
 ======================================================================
-TABLE 3f â€” DDI EXTERNAL VALIDATION STATUS
+TABLE 3f — DDI EXTERNAL VALIDATION STATUS
 ======================================================================
   DDI labels: read from ddi_metadata.csv 'malignant' column,
   which is DDI's own biopsy-confirmed independent ground truth.
   Neither run_ddi_inference.py nor evaluate_ddi.py uses any
   HAM dx-to-label mapping.  DDI numbers are UNCHANGED.
 ======================================================================
+
+Report saved -> results\metrics_report.txt

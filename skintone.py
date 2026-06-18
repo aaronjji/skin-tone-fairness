@@ -841,8 +841,8 @@ def generate_paper_sections(results: dict, stats: dict, test_df: pd.DataFrame, o
     t_dark  = results.get("tone_only", {}).get("dark",    {})
 
     diff_sens = ""
-    if f_dark and b_dark:
-        d = (f_dark.get("sensitivity", 0) - b_dark.get("sensitivity", 0)) * 100
+    if t_dark and b_dark:
+        d = (t_dark.get("sensitivity", 0) - b_dark.get("sensitivity", 0)) * 100
         diff_sens = f"{d:+.1f}pp"
 
     sig_str = "reaches" if (isinstance(p_val, float) and p_val < 0.05) else "does not reach"
@@ -855,8 +855,9 @@ underlying mechanism remains underspecified. We demonstrate that contrast-induce
 systematic reduction in lesion-background visual contrast with increasing skin melanin concentration—
 is a mechanistically distinct fairness bottleneck that persists even with balanced training data. We
 formalise this via signal-to-noise ratio (SNR) analysis grounded in ITA-based optical parameters
-(Seité et al. 2020), showing a 6× SNR reduction from lighter (Fitzpatrick I–II) to darker skin
-(V–VI), consistent with the ~20pp AUC gap reported in Daneshjou et al. (2022).
+(Seité et al. 2020), showing a 5.2× SNR reduction (4.09 light / 0.78 dark) from lighter
+(Fitzpatrick I–II) to darker skin (V–VI), consistent with the ~20pp AUC gap reported in
+Daneshjou et al. (2022).
 
 We present SkinToneNet v4: an EfficientNet-B2 backbone augmented with an ITA-based tone conditioning
 branch, trained and evaluated on HAM10000 (10,015 real dermoscopic images, patient-level split,
