@@ -1,6 +1,8 @@
 # SkinToneNet — Skin Tone-Aware Melanoma Detection
 
-Code for: *"Contrast-Induced Class Overlap as a Fairness Bottleneck in Dermatological AI: Evidence from HAM10000"*
+**Code for: *"Contrast-Induced Class Overlap as a Fairness Bottleneck in Dermatological AI: Evidence from HAM10000"***
+
+Preprint: medRxiv — TBD (link and DOI will be added here once the preprint is posted)
 
 ## Overview
 
