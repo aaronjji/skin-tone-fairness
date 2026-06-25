@@ -2,7 +2,7 @@
 
 **Code for: *"Contrast-Induced Class Overlap as a Fairness Bottleneck in Dermatological AI: Evidence from HAM10000"***
 
-Preprint: Researchsquare — https://doi.org/10.21203/rs.3.rs-10133196/v1
+Preprint: Researchsquare — https://doi.org/10.21203/rs.3.rs-10132969/v1
 
 ## Overview
 
