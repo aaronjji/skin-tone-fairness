@@ -1,9 +1,5 @@
 # SkinToneNet — Skin Tone-Aware Melanoma Detection
 
-**Code for: *"Contrast-Induced Class Overlap as a Fairness Bottleneck in Dermatological AI: Evidence from HAM10000"***
-
-Preprint: Research Square — https://doi.org/10.21203/rs.3.rs-10132969/v1
-
 ## Overview
 
 SkinToneNet is an EfficientNet-B2 classifier trained on HAM10000 that conditions on a 3-dimensional ITA (Individual Typology Angle) skin tone encoding at inference time. The goal is to reduce the performance gap between light- and dark-skinned patients in automated melanoma detection.
