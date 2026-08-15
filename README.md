@@ -6,12 +6,13 @@ Preprint: Research Square — https://doi.org/10.21203/rs.3.rs-10132969/v1
 
 ## Overview
 
-SkinToneNet is an EfficientNet-B2 classifier trained on HAM10000 that conditions on a 3-dimensional ITA (Individual Typology Angle) skin tone encoding at inference time. The goal is to reduce the performance gap between light- and dark-skinned patients in automated melanoma detection.
+SkinToneNet is an EfficientNet-B2 classifier trained on HAM10000 that conditions on a 3-dimensional ITA (Individual Typology Angle) skin tone encoding at inference time. The goal is to reduce the performance gap between light- and dark-skinned patients in automated melanoma detection. The paper refers to this architecture as **ITA-CondNet**.
 
-**Key results (HAM10000 test set, 8-crop TTA):**
-- Light skin (ITA > 41): AUC = 0.936
-- Dark skin (ITA < 10): AUC = 0.869
-- Gap: 6.7 percentage points (down from ~20pp reported in prior work on unmodified models)
+**Key results (HAM10000 test set, high-confidence ITA subset, 8-crop TTA, full model):**
+- Specificity deficit on darker skin: −11.0 pp (0.715 dark vs. 0.826 light), while sensitivity is comparable across tone (permutation p < 0.0002)
+- Signal-to-noise ratio reduction from lighter to darker skin: 5.2×
+- Per-tone class balancing (not tone conditioning) recovers the most dark-skin specificity: 0.668 → 0.799
+- Translates to an estimated ≈70 excess unnecessary referrals per 1,000 darker-skin patients
 
 ## Repository Structure
 
@@ -30,13 +31,14 @@ figures/                     # Paper figures (PDF)
 
 ## Pretrained Weights
 
-The four trained checkpoints are included in this repository under `results/`:
+All five trained checkpoints are included in this repository under `results/`:
 
 ```
 results/baseline_best.pt
 results/aug_only_best.pt
 results/tone_only_best.pt
 results/full_best.pt
+results/baseline_balanced_best.pt   # Balanced Baseline — recovers the most dark-skin specificity
 ```
 
 ## Installation
@@ -76,7 +78,7 @@ Open `skincancer_kaggle.ipynb` in Kaggle, attach the HAM10000 dataset and your `
 
 **Locally:**
 ```bash
-# Train all four variants
+# Train the four ITA/augmentation variants
 python skintone.py --mode full --ham_dir data/ham10000 --output_dir results
 
 # Train only specific variants
@@ -90,7 +92,8 @@ Variants:
 - `baseline` — EfficientNet-B2, standard augmentation
 - `aug_only` — adds heavy augmentation (color jitter, elastic)
 - `tone_only` — adds ITA conditioning, standard augmentation
-- `full` — ITA conditioning + heavy augmentation (best model)
+- `full` — ITA conditioning + heavy augmentation
+- `baseline_balanced` (`--mode balanced`) — equalised class exposure (pos_weight=1.0), the data-counting control; recovers the most dark-skin specificity of any variant
 
 ## Inference
 
@@ -122,7 +125,24 @@ Generates four PDF figures for the paper.
 
 ## Citation
 
-please contact my email if you need to cite
+Accepted at the FAIMI-BRIDGE-EPIMI 2026 MICCAI workshop; the Springer LNCS DOI will be
+added here once assigned. In the meantime, cite the Research Square preprint above or the
+workshop version below.
+
+```bibtex
+@inproceedings{ajit2026contrast,
+  author    = {Ajit, Aaron},
+  title     = {Contrast-Induced Class Overlap as a Fairness Bottleneck in
+               Dermatological AI: Evidence from {HAM10000}},
+  booktitle = {Fairness of AI in Medical Imaging (FAIMI) / Regulatory
+               Evaluation (BRIDGE) / Ethics \& Philosophy (EPIMI) --
+               Joint MICCAI 2026 Workshop},
+  series    = {Lecture Notes in Computer Science},
+  publisher = {Springer},
+  year      = {2026},
+  note      = {To appear}
+}
+```
 
 ## License
 
