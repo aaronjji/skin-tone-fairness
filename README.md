@@ -1,4 +1,4 @@
-# SkinToneNet — Skin Tone-Aware Melanoma Detection
+# SkinToneNet — Skin Tone-Aware Dermatology Referral Triage
 
 **Code for: "Contrast-Induced Class Overlap as a Fairness Bottleneck in Dermatological AI: Evidence from HAM10000"**
 
@@ -6,7 +6,7 @@ Preprint: Research Square — https://doi.org/10.21203/rs.3.rs-10132969/v1
 
 ## Overview
 
-SkinToneNet is an EfficientNet-B2 classifier trained on HAM10000 that conditions on a 3-dimensional ITA (Individual Typology Angle) skin tone encoding at inference time. The goal is to reduce the performance gap between light- and dark-skinned patients in automated melanoma detection. The paper refers to this architecture as **ITA-CondNet**.
+SkinToneNet is an EfficientNet-B2 classifier trained on HAM10000 that conditions on a 3-dimensional ITA (Individual Typology Angle) skin tone encoding at inference time. The task is referral triage — melanoma, BCC, and AKIEC vs. benign — not melanoma detection alone. The goal is to reduce the performance gap between light- and dark-skinned patients on that task. The paper refers to this architecture as **ITA-CondNet**.
 
 **Key results (HAM10000 test set, high-confidence ITA subset, 8-crop TTA, full model):**
 - Specificity deficit on darker skin: −11.0 pp (0.715 dark vs. 0.826 light), while sensitivity is comparable across tone (permutation p < 0.0002)
@@ -44,10 +44,15 @@ results/baseline_balanced_best.pt   # Balanced Baseline — recovers the most da
 ## Installation
 
 ```bash
+pip install -r requirements.txt
+```
+
+Pinned to the versions this codebase was last verified against. For quick, unpinned setup:
+```bash
 pip install torch torchvision timm scikit-learn scipy pandas numpy Pillow tqdm matplotlib
 ```
 
-Python 3.9+ recommended. Tested with PyTorch 2.x and numpy 2.x.
+Python 3.9+ recommended.
 
 ## Dataset Setup
 
@@ -88,12 +93,22 @@ python skintone.py --mode full --variants baseline aug_only --ham_dir data/ham10
 python skintone.py --mode balanced --ham_dir data/ham10000 --output_dir results
 ```
 
+Every variant already uses inverse-class-frequency weighted sampling (`make_sampler`), so
+malignant/benign class exposure is equalised across the whole ablation by default — that is
+not what distinguishes `baseline_balanced` below.
+
 Variants:
-- `baseline` — EfficientNet-B2, standard augmentation
-- `aug_only` — adds heavy augmentation (color jitter, elastic)
-- `tone_only` — adds ITA conditioning, standard augmentation
-- `full` — ITA conditioning + heavy augmentation
-- `baseline_balanced` (`--mode balanced`) — equalised class exposure (pos_weight=1.0), the data-counting control; recovers the most dark-skin specificity of any variant
+- `baseline` — EfficientNet-B2, standard augmentation (`ColorJitter` brightness/contrast/saturation/hue 0.2/0.2/0.15/0.05), `pos_weight=2.0`
+- `aug_only` — stronger `ColorJitter` (0.3/0.3/0.2/0.08) + `GaussianBlur`, Mixup (α=0.2), and 3× oversampling of dark-tone training rows
+- `tone_only` — adds ITA conditioning (32-dim tone branch), standard augmentation
+- `full` — ITA conditioning + everything in `aug_only` (stronger aug, Mixup, 3× dark oversampling)
+- `baseline_balanced` (`--mode balanced`) — the data-counting control. Two changes from
+  `baseline`: `pos_weight` drops from 2.0 to 1.0, and the training set is tone-balanced
+  (`make_tone_balanced_df` oversamples medium and dark rows to match the light-skin count).
+  Recovers the most dark-skin specificity of any variant. *(Note: the paper describes this
+  as "equalised class exposure" — since class exposure is already equalised for every
+  variant via `make_sampler`, the more precise mechanism is the `pos_weight` change plus
+  tone-group oversampling described here; the headline result itself is unaffected.)*
 
 ## Inference
 
@@ -125,9 +140,8 @@ Generates four PDF figures for the paper.
 
 ## Citation
 
-Accepted at the FAIMI-BRIDGE-EPIMI 2026 MICCAI workshop; the Springer LNCS DOI will be
-added here once assigned. In the meantime, cite the Research Square preprint above or the
-workshop version below.
+Please cite the workshop paper (accepted at FAIMI-BRIDGE-EPIMI 2026; the Springer LNCS DOI
+will replace the `note` field below once assigned):
 
 ```bibtex
 @inproceedings{ajit2026contrast,
@@ -144,6 +158,9 @@ workshop version below.
 }
 ```
 
+The Research Square preprint (linked above) remains available for transparency.
+
 ## License
 
-Code: MIT License. Model weights trained on HAM10000 (CC BY-NC-SA 4.0) — non-commercial use only.
+Code: [MIT License](LICENSE) (code only — see [WEIGHTS_LICENSE](WEIGHTS_LICENSE) for scope).
+Model weights trained on HAM10000 (CC BY-NC-SA 4.0) — non-commercial use only.

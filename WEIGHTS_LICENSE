@@ -1,0 +1,12 @@
+This repository contains two separately licensed things:
+
+1. Code (all .py files, the Kaggle notebook, and other source files) is licensed
+   under the MIT License — see LICENSE. The MIT grant applies to code only.
+
+2. Pretrained model weights (results/*.pt) were trained on the HAM10000 dataset
+   (CC BY-NC-SA 4.0) and are made available for non-commercial use only, under
+   the same CC BY-NC-SA 4.0 terms: https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+If you use the weights, attribute both this repository and the HAM10000 dataset
+(Tschandl et al., 2018, https://doi.org/10.1038/sdata.2018.161), and share any
+derivative weights under the same non-commercial, share-alike terms.

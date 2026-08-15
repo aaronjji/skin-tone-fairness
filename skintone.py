@@ -19,9 +19,6 @@ python skintone_net_ham10000.py --mode full --ham_dir ./ham10000 --output_dir ./
 # Step 4: Evaluation only (after training)
 python skintone_net_ham10000.py --mode eval --ham_dir ./ham10000 --output_dir ./results
 
-# Step 5: See expected output format
-python skintone_net_ham10000.py --mode example_output
-
 DEPENDENCIES
 ------------
 pip install torch torchvision timm scikit-learn scipy pandas numpy Pillow tqdm kaggle
@@ -965,55 +962,6 @@ HAM10000 preprocessing pipeline are publicly released.
     return abstract, results_sec, conclusion
 
 
-# Expected Output Example
-
-
-def print_example_output():
-    print("""
-╔══════════════════════════════════════════════════════════════════════════════════════════════╗
-║           EXPECTED OUTPUT FORMAT (Representative HAM10000 Values)                            ║
-║           Replace with your actual computed values after running.                            ║
-╠══════════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                              ║
-║  TABLE III — ABLATION RESULTS (Shared Test Set, TTA 8-crop, Bootstrap 2000-iter 95% CI)     ║
-║                                                                                              ║
-║  Variant       Tone     AUC    CI               Sens   CI               Spec    n    n_pos  ║
-║  ──────────────────────────────────────────────────────────────────────────────────────────  ║
-║  baseline      overall  0.891  [0.874–0.907]    0.712  [0.681–0.744]   0.873  1503   298   ║
-║  baseline      light    0.903  [0.882–0.923]    0.731  [0.694–0.768]   0.881  1047   198   ║
-║  baseline      medium   0.874  [0.841–0.906]    0.689  [0.634–0.742]   0.858   338    71   ║
-║  baseline      dark     0.812  [0.751–0.873]    0.583  [0.489–0.677]   0.844   118    29   ║
-║                                                                                              ║
-║  aug_only      overall  0.889  [0.872–0.906]    0.698  [0.665–0.730]   0.886  1503   298   ║
-║  aug_only      light    0.901  [0.880–0.921]    0.716  [0.678–0.753]   0.893  1047   198   ║
-║  aug_only      medium   0.871  [0.838–0.903]    0.674  [0.619–0.728]   0.874   338    71   ║
-║  aug_only      dark     0.829  [0.771–0.887]    0.601  [0.507–0.695]   0.867   118    29   ║
-║                                                                                              ║
-║  tone_only     overall  0.894  [0.877–0.910]    0.719  [0.688–0.751]   0.876  1503   298   ║
-║  tone_only     light    0.905  [0.885–0.924]    0.734  [0.698–0.771]   0.884  1047   198   ║
-║  tone_only     medium   0.878  [0.846–0.909]    0.697  [0.643–0.751]   0.861   338    71   ║
-║  tone_only     dark     0.841  [0.784–0.898]    0.619  [0.526–0.712]   0.848   118    29   ║
-║                                                                                              ║
-║  full          overall  0.896  [0.879–0.912]    0.707  [0.675–0.738]   0.891  1503   298   ║
-║  full          light    0.907  [0.887–0.926]    0.724  [0.687–0.762]   0.898  1047   198   ║
-║  full          medium   0.881  [0.849–0.912]    0.689  [0.635–0.743]   0.876   338    71   ║
-║  full          dark     0.847  [0.791–0.903]    0.627  [0.534–0.721]   0.878   118    29   ║
-║                                                                                              ║
-║  STATISTICAL ANALYSIS (full vs baseline, dark-skin subgroup)                                 ║
-║  ─────────────────────────────────────────────────────────────────────────────────────────   ║
-║  Permutation test p = 0.1840  (5000 iterations, paired swap)                                ║
-║  Cohen's h        = 0.1134  (dark sensitivity: 0.627 vs 0.583)                              ║
-║  n for 80% power  ≈ 647  dark-skin test images  (current n=118 → underpowered)              ║
-║                                                                                              ║
-║  INTERPRETATION                                                                              ║
-║  ─────────────────────────────────────────────────────────────────────────────────────────   ║
-║  Non-significant p is expected and honest. HAM10000 dark-skin n≈118 is well below the       ║
-║  power-required n≈647. The directional improvement (AUC: 0.812→0.847; Sens: +4.4pp) is     ║
-║  consistent with the mechanistic SNR hypothesis. This motivates but does not confirm         ║
-║  clinical benefit. Confirmatory validation requires a larger dark-skin cohort (n≈647).       ║
-╚══════════════════════════════════════════════════════════════════════════════════════════════╝
-""")
-
 
 # Main
 
@@ -1022,7 +970,7 @@ def main():
     global EPOCHS
     parser = argparse.ArgumentParser(description="SkinToneNet v4 — HAM10000 Pipeline")
     parser.add_argument("--mode", required=True,
-                        choices=["download", "ablation", "full", "eval", "example_output", "balanced"])
+                        choices=["download", "ablation", "full", "eval", "balanced"])
     parser.add_argument("--ham_dir",    default="./ham10000")
     parser.add_argument("--output_dir", default="./results")
     parser.add_argument("--no_tta",     action="store_true",
@@ -1034,10 +982,6 @@ def main():
                         help="Comma-separated subset of variants to train, e.g. baseline,aug_only,tone_only")
     args = parser.parse_args()
     EPOCHS = args.epochs
-
-    if args.mode == "example_output":
-        print_example_output()
-        return
 
     if args.mode == "download":
         download_ham10000(args.ham_dir)
@@ -1090,7 +1034,7 @@ def main():
         "balanced": ["baseline_balanced"],
     }
     to_train = VARIANT_MAP.get(args.mode, [])
-    if args.variants and args.mode not in ("eval", "example_output", "download"):
+    if args.variants and args.mode not in ("eval", "download"):
         allowed = [v.strip() for v in args.variants.split(",")]
         to_train = [v for v in to_train if v in allowed]
     trained  = {}
