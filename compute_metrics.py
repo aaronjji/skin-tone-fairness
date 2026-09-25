@@ -163,13 +163,19 @@ def met(scores, labels, t=T_DEFAULT):
     labels = np.asarray(labels)
     if len(labels) == 0 or len(np.unique(labels)) < 2:
         return dict(auc=float("nan"), sens=float("nan"), spec=float("nan"),
+                    ppv=float("nan"), fdr=float("nan"),
+                    tp=0, fp=0, tn=0, fn=0,
                     n=int(len(labels)), n_pos=int(labels.sum()) if len(labels) else 0)
     preds = (scores >= t).astype(int)
     tn, fp, fn, tp = confusion_matrix(labels, preds, labels=[0, 1]).ravel()
+    tn, fp, fn, tp = int(tn), int(fp), int(fn), int(tp)
     return dict(
         auc  = float(roc_auc_score(labels, scores)),
         sens = float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0,
         spec = float(tn / (tn + fp)) if (tn + fp) > 0 else 0.0,
+        ppv  = float(tp / (tp + fp)) if (tp + fp) > 0 else float("nan"),
+        fdr  = float(fp / (tp + fp)) if (tp + fp) > 0 else float("nan"),
+        tp=tp, fp=fp, tn=tn, fn=fn,
         n    = int(len(labels)),
         n_pos= int(labels.sum()),
     )
@@ -337,13 +343,17 @@ def main():
             lines.append(f"{DISPLAY[name]:<16} — checkpoint not found, skipped")
             lines.append("")
             continue
-        for tone in ("overall", "light", "dark"):
+        for tone in ("overall", "light", "medium", "dark"):
             m = abl[name][tone]
+            note = "  (n_pos=3, uninformative)" if tone == "medium" else ""
             lines.append(
                 f"{DISPLAY[name]:<16} {tone:<8} {_f(m['auc']):>6} {_ci(m['auc_lo'],m['auc_hi']):>17} "
                 f"{_f(m['sens'],3):>6} {_ci(m['sens_lo'],m['sens_hi']):>17} "
-                f"{_f(m['spec'],3):>6} {masks[tone].sum():>5} {int(labels[masks[tone]].sum()):>5}"
+                f"{_f(m['spec'],3):>6} {masks[tone].sum():>5} {int(labels[masks[tone]].sum()):>5}{note}"
             )
+            print(f"  [provenance] {DISPLAY[name]} / {tone}: AUC={_f(m['auc'])} Sens={_f(m['sens'],3)} "
+                  f"Spec={_f(m['spec'],3)} (n={masks[tone].sum()}, n_pos={int(labels[masks[tone]].sum())}) "
+                  f"<- all_scores.csv col '{name}', mask tone='{tone}' [ita_cache.json, split_indices.json]")
         lines.append("")
 
     sep()
@@ -447,12 +457,73 @@ def main():
     sep(w=65)
     lines.append("")
 
-    # ── 3e. Referral burden ───────────────────────────────────────────────────
-    sep(w=95)
-    lines.append("TABLE 3e — REFERRAL BURDEN  (full model, corrected labels)")
+    # ── 3g. Base rates + predictive value (PPV/FDR), full split ──────────────
+    sep(w=115)
+    lines.append("TABLE 3g — BASE RATES AND PREDICTIVE VALUE (PPV/FDR) BY TONE, FULL SPLIT")
+    lines.append("          t=0.5. TP/FP counted directly from thresholded scores (primary);")
+    lines.append("          Sens*n_pos / (1-Spec)*(n-n_pos) cross-check must agree with direct counts.")
+    lines.append("          PPV depends on prevalence -- do not read a PPV gap as a larger disparity")
+    lines.append("          than the underlying Sens/Spec gap already shows.")
+    sep(w=115)
     lines.append(
-        f"          unnecessary_per_1000 = (1 - spec) x p_benign x 1000"
-        f"   [p_benign = {p_ben:.4f}]"
+        f"{'Variant':<16} {'Tone':<8} {'n':>5} {'n+':>5} {'Prev.':>7} "
+        f"{'TP':>4} {'FP':>4} {'PPV':>6} {'FDR':>6} {'xchk TP':>8} {'xchk FP':>8}"
+    )
+    sep("-", w=115)
+    for name, _, _ in VARIANTS:
+        if name not in all_scores:
+            continue
+        sc = all_scores[name]
+        for tone in ("light", "medium", "dark"):
+            mask = masks[tone]
+            ts, tl = sc[mask], labels[mask]
+            m = met(ts, tl, t=T_DEFAULT)
+            n_t, n_pos = m["n"], m["n_pos"]
+            prev = n_pos / n_t if n_t else float("nan")
+            xchk_tp = m["sens"] * n_pos
+            xchk_fp = (1 - m["spec"]) * (n_t - n_pos)
+            agree = abs(xchk_tp - m["tp"]) < 0.6 and abs(xchk_fp - m["fp"]) < 0.6
+            flag = "" if agree else "  [MISMATCH]"
+            note = "  (n_pos=3, uninformative)" if tone == "medium" else ""
+            lines.append(
+                f"{DISPLAY[name]:<16} {tone:<8} {n_t:>5} {n_pos:>5} {prev*100:>6.1f}% "
+                f"{m['tp']:>4} {m['fp']:>4} {_f(m['ppv'],3):>6} {_f(m['fdr'],3):>6} "
+                f"{xchk_tp:>8.1f} {xchk_fp:>8.1f}{flag}{note}"
+            )
+            print(f"  [provenance] {DISPLAY[name]} / {tone}: TP={m['tp']} FP={m['fp']} "
+                  f"PPV={_f(m['ppv'],3)} FDR={_f(m['fdr'],3)} direct-count vs cross-check "
+                  f"TP'={xchk_tp:.1f} FP'={xchk_fp:.1f} agree={agree} "
+                  f"<- all_scores.csv col '{name}', mask tone='{tone}', t=0.5")
+    sep(w=115)
+    lines.append("")
+
+    # ── 3e. Referral burden ───────────────────────────────────────────────────
+    # BUGFIX: previously used a single GLOBAL p_benign (0.8035) for both the
+    # light-HC and dark-HC rows. Prevalence differs by tone (dark subset has
+    # higher malignant prevalence -> lower p_benign), so each row must use its
+    # OWN subset's p_benign, matched to the same HC subset as its specificity.
+    p_ben_hc_light = 1 - (int(labels[masks["hc_light"]].sum()) / int(masks["hc_light"].sum()))
+    p_ben_hc_dark  = 1 - (int(labels[masks["hc_dark"]].sum())  / int(masks["hc_dark"].sum()))
+    print(f"  [provenance] p_benign(light-HC)={p_ben_hc_light:.4f} "
+          f"(n={int(masks['hc_light'].sum())}, n_pos={int(labels[masks['hc_light']].sum())}) "
+          f"<- ita_cache.json mask ita>55")
+    print(f"  [provenance] p_benign(dark-HC)={p_ben_hc_dark:.4f} "
+          f"(n={int(masks['hc_dark'].sum())}, n_pos={int(labels[masks['hc_dark']].sum())}) "
+          f"<- ita_cache.json mask ita<0")
+    print(f"  [provenance] OLD (buggy) global p_benign used for both rows = {p_ben:.4f} "
+          f"(overall prevalence, wrong subset for this table)")
+
+    p_ben_hc = {"light": p_ben_hc_light, "dark": p_ben_hc_dark}
+
+    sep(w=95)
+    lines.append("TABLE 3e — REFERRAL BURDEN  (full model, HC-ITA subset, corrected labels)")
+    lines.append("          Light HC: ITA>55 (n=707), Dark HC: ITA<0 (n=558)")
+    lines.append(
+        "          unnecessary_per_1000 = (1 - spec) x p_benign x 1000, "
+        "p_benign computed on the SAME HC subset as spec (not the full-split or global rate)"
+    )
+    lines.append(
+        f"          p_benign(light-HC)={p_ben_hc_light:.4f}   p_benign(dark-HC)={p_ben_hc_dark:.4f}"
     )
     sep(w=95)
     lines.append(
@@ -463,32 +534,39 @@ def main():
 
     if "full" in all_scores:
         sf = all_scores["full"]
-        for tone in ("light", "dark"):
-            mask = masks[tone]
+        for tone, mask_key in (("light", "hc_light"), ("dark", "hc_dark")):
+            mask = masks[mask_key]
             ts, tl = sf[mask], labels[mask]
             for t_val in (T_DEFAULT, T_CALIB):
                 m      = met(ts, tl, t=t_val)
                 spec   = m.get("spec", float("nan"))
                 fpr    = 1.0 - spec if not np.isnan(spec) else float("nan")
-                burden = fpr * p_ben * 1000 if not np.isnan(fpr) else float("nan")
+                burden = fpr * p_ben_hc[tone] * 1000 if not np.isnan(fpr) else float("nan")
                 n_ben  = int((tl == 0).sum())
                 lines.append(
                     f"{tone:<8} {t_val:>5.2f}  {_f(spec,3):>6}  {_f(fpr,3):>6}  "
                     f"{_f(burden,1):>18}  {n_ben:>10}"
                 )
+                print(f"  [provenance] burden {tone}@t={t_val}: spec={_f(spec,3)} "
+                      f"p_benign={p_ben_hc[tone]:.4f} -> {_f(burden,1)}/1000 "
+                      f"<- all_scores.csv col 'full', mask '{mask_key}'")
 
-        spec_d5 = met(sf[masks["dark"]],  labels[masks["dark"]],  t=0.50).get("spec", float("nan"))
-        spec_l5 = met(sf[masks["light"]], labels[masks["light"]], t=0.50).get("spec", float("nan"))
-        spec_d3 = met(sf[masks["dark"]],  labels[masks["dark"]],  t=T_CALIB).get("spec", float("nan"))
-        spec_l3 = met(sf[masks["light"]], labels[masks["light"]], t=T_CALIB).get("spec", float("nan"))
+        spec_d5 = met(sf[masks["hc_dark"]],  labels[masks["hc_dark"]],  t=0.50).get("spec", float("nan"))
+        spec_l5 = met(sf[masks["hc_light"]], labels[masks["hc_light"]], t=0.50).get("spec", float("nan"))
+        spec_d3 = met(sf[masks["hc_dark"]],  labels[masks["hc_dark"]],  t=T_CALIB).get("spec", float("nan"))
+        spec_l3 = met(sf[masks["hc_light"]], labels[masks["hc_light"]], t=T_CALIB).get("spec", float("nan"))
 
-        exc_50 = ((1-spec_d5)-(1-spec_l5)) * p_ben * 1000
-        exc_35 = ((1-spec_d3)-(1-spec_l3)) * p_ben * 1000
+        exc_50 = (1-spec_d5)*p_ben_hc_dark*1000 - (1-spec_l5)*p_ben_hc_light*1000
+        exc_35 = (1-spec_d3)*p_ben_hc_dark*1000 - (1-spec_l3)*p_ben_hc_light*1000
+        exc_50_buggy = ((1-spec_d5)-(1-spec_l5)) * p_ben * 1000
         lines.append(
             f"\n  Excess unnecessary referrals dark vs light @ t=0.50: {exc_50:+.1f} / 1 000 patients"
         )
         lines.append(
             f"  Excess unnecessary referrals dark vs light @ t=0.35: {exc_35:+.1f} / 1 000 patients"
+        )
+        lines.append(
+            f"  [for audit only] previous global-p_benign figure @ t=0.50 was: {exc_50_buggy:+.1f} / 1 000"
         )
         lines.append(
             f"  Dark specificity  t=0.50 -> t=0.35: "
@@ -498,6 +576,8 @@ def main():
             f"  Light specificity t=0.50 -> t=0.35: "
             f"{_f(spec_l5,3)} -> {_f(spec_l3,3)}  (d = {spec_l3-spec_l5:+.3f})"
         )
+        print(f"  [provenance] HEADLINE excess/1000 @t=0.50: corrected={exc_50:+.1f} "
+              f"vs previous(buggy)={exc_50_buggy:+.1f}")
     else:
         lines.append("  [SKIP] full checkpoint not available")
 
