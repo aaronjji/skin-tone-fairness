@@ -141,11 +141,14 @@ Every number is computed at render time from `results/test_predictions.csv` +
 `results/all_scores.csv` (n=1,527 locked test set, 8-crop TTA, corrected
 `vasc → benign` labels). All values reproduce `results/metrics_report.txt` exactly.
 
-> **Do not reuse `figures/*.pdf` from `generate_figures.py` on the poster.** That
-> script synthesises its ROC curves from AUC point estimates
-> (`roc_from_auc`, a parametric fit plus Gaussian noise — not real data), and its
-> hard-coded constants (light AUC 0.9359, dark 0.8694, "Δ=6.7pp") predate the label
-> correction. The current numbers are 0.9106 / 0.8572, Δ=5.3pp.
+> **`generate_figures.py` and its four `figures/figure*.pdf` outputs were removed
+> from the repo** (recoverable from git history). That script synthesised its ROC
+> curves from AUC point estimates — `roc_from_auc()`, a parametric fit plus
+> Gaussian noise, not real data — and its hard-coded constants (light AUC 0.9359,
+> dark 0.8694, "Δ=6.7pp") predated the vasc→benign label correction. The current
+> values are 0.9106 / 0.8572, Δ=5.3pp. Anyone cross-checking the repo against a
+> talk would have found those PDFs first, which is why they are gone rather than
+> merely regenerated.
 
 ## The figures
 
@@ -255,8 +258,10 @@ The figure scripts still say "light skin"/"dark skin" because that is what the c
 paper claims; change the labels once you have decided which way to go. `fig8` is the
 evidence, not a poster panel.
 
-Separately, `ddi_results/ddi_section.txt` still quotes the pre-correction "6.7pp"
-HAM10000 gap; the corrected value is 5.3pp.
+The pre-correction "6.7pp" HAM10000 gap that `evaluate_ddi.py` and
+`ddi_results/ddi_section.txt` used to quote has been corrected to 5.3pp
+(full-ITA split). Note the paper's Sect. 4.3 rounds the same quantity to −5.4 pp;
+see the mismatch noted above.
 
 ## Sizing fig7 on the board
 

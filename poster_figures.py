@@ -3,9 +3,10 @@ poster_figures.py - poster-grade figures for the ITA-CondNet A0 poster.
 
 Everything here is computed from the locked test-set scores
 (results/test_predictions.csv + results/all_scores.csv). Nothing is hard-coded
-or simulated -- unlike generate_figures.py, whose ROC curves were synthesised
-from AUC point estimates and whose constants predate the vasc->benign label
-correction.
+or simulated. This replaces the earlier generate_figures.py (removed from the
+repo; recoverable from git history), whose ROC curves were synthesised from AUC
+point estimates via roc_from_auc() rather than measured from scores, and whose
+constants predated the vasc->benign label correction.
 
 Run:  python poster_figures.py --out figures/poster
 """

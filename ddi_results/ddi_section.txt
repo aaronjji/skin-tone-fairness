@@ -19,7 +19,7 @@ The light--dark AUC gap on DDI (full model):
 light AUC$=$0.6278 vs.\
 dark AUC$=$0.5862,
 a gap of 4.2pp.
-This is consistent with the gap observed on HAM10000 (6.7pp) and with the
+This is consistent with the gap observed on HAM10000 (5.3pp, full-ITA split) and with the
 ${\sim}20$pp gap reported by Daneshjou et al.~\cite{daneshjou2022},
 providing cross-dataset evidence that the performance disparity is not an
 artifact of HAM10000's composition.

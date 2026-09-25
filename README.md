@@ -21,12 +21,16 @@ skintone.py                  # Main training script (all variants)
 run_inference.py             # HAM10000 test-set inference
 run_ddi_inference.py         # DDI zero-shot inference
 evaluate_ddi.py              # Full DDI evaluation with bootstrap CIs
-generate_figures.py          # Generates all paper figures
+poster_figures.py            # Data figures (ROC, specificity, referral burden)
+poster_visuals.py            # Method schematic and qualitative lesion panel
+ita_diagnostic.py            # What the ITA split separates (see Limitations)
+figure_audit.py              # Layout checker for the figures
+test_figure_audit.py         # Tests for the layout checker
 download_datasets.py         # Helper scripts to download public datasets
 skincancer_kaggle.ipynb      # Kaggle notebook (T4 GPU training)
 results/                     # Predictions, ITA cache, split indices
 ddi_results/                 # DDI evaluation outputs
-figures/                     # Paper figures (PDF)
+figures/poster/              # Figures (PDF + PNG), see its README
 ```
 
 ## Pretrained Weights
@@ -133,10 +137,17 @@ python evaluate_ddi.py \
 ## Figures
 
 ```bash
-python generate_figures.py --out_dir figures
+python poster_figures.py --out figures/poster   # data figures
+python poster_visuals.py --out figures/poster   # schematic + lesion panel
+python ita_diagnostic.py                        # ITA diagnostic
+python figure_audit.py                          # layout check
 ```
 
-Generates four PDF figures for the paper.
+Every value is computed at render time from `results/test_predictions.csv` and
+`results/all_scores.csv`, and reproduces `results/metrics_report.txt`. See
+`figures/poster/README.md` for which subset each figure uses, how each number
+was checked against the paper, and a caveat on the ITA tone proxy that is worth
+reading before reusing these figures.
 
 ## Citation
 

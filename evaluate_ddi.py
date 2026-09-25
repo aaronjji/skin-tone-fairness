@@ -506,7 +506,7 @@ The light--dark AUC gap on DDI (full model):
 light AUC$=${f(full.get('light', {}).get('auc', float('nan')))} vs.\\
 dark AUC$=${f(full.get('dark', {}).get('auc', float('nan')))},
 a gap of {abs(full.get('light', {}).get('auc', 0) - full.get('dark', {}).get('auc', 0))*100:.1f}pp.
-This is consistent with the gap observed on HAM10000 (6.7pp) and with the
+This is consistent with the gap observed on HAM10000 (5.3pp, full-ITA split) and with the
 ${{\\sim}}20$pp gap reported by Daneshjou et al.~\\cite{{daneshjou2022}},
 providing cross-dataset evidence that the performance disparity is not an
 artifact of HAM10000's composition.
